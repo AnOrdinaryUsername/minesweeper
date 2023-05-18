@@ -112,9 +112,6 @@ export default class GameLogic {
 				mines += 1;
 				cell.hasMine = true;
 				cell.value = -1;
-			} else {
-				// If a cell was alread revealed or akready had a mine, we try again
-				mines -= 1;
 			}
 		}
 

@@ -2,6 +2,7 @@ import {Box, Text, useApp} from 'ink';
 import React, {useEffect, useState} from 'react';
 import {useWindowSize} from './hooks/useWindowSize.js';
 import {Credits} from './screens/Credits.js';
+import {GameBoard} from './screens/GameBoard/GameBoard.js';
 import {MainMenu} from './screens/MainMenu.js';
 import {MenuItem, ScreenState} from './types/index.js';
 
@@ -42,10 +43,11 @@ export default function App({initialScreen = 'menu'}: Props) {
 				justifyContent="center"
 				borderStyle="round"
 				borderColor="yellowBright"
-				height={height * 0.8}
-				width={width * 0.8}
+				height="80%"
+				width="80%"
 			>
 				{currentScreen === 'menu' && <MainMenu onSelect={handleSelect} />}
+				{currentScreen === 'start' && <GameBoard />}
 				{currentScreen === 'credits' && <Credits handleInput={handleSelect} />}
 				{currentScreen === 'quit' && (
 					<Text color="cyan">Thank you for playing our game!</Text>

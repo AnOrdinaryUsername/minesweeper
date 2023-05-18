@@ -15,8 +15,7 @@ grid_cols = 10
 
 # Cell content meanings:
 cell_empty = 0
-cell_mine = 9  # It rhymes
-
+cell_mine = -1
 
 # The data structure for the playfield/grid gamestate.
 # It's full of integers. Each number tells the cell's contents.
@@ -53,8 +52,7 @@ def handle_input():
         cursor_x -= 1
     elif inp == "D":
         cursor_x += 1
-    elif inp == '':
-        create_mines()
+        
 
     # Don't let the cursor go out of bounds
     cursor_x = max(0, min(cursor_x, grid_cols - 1))
@@ -80,22 +78,52 @@ def create_mines():
     # Track of number of mines already set up
     count = 0
     while count < mines_no:
-
-        # Random number from all possible grid positions
-        rand = random.randint(0, grid_rows*grid_cols-1)
-        rand2 = random.randint(0, grid_rows*grid_cols-1)
-
-        # Create row and column pair
-        row = rand // rand2
-        col = rand % rand2
+        # Create random row and column pair
+        row = random.randint(0, grid_rows-1)
+        col = random.randint(0, grid_cols-1)
 
         # Place Mine if empty
-        if grid[row][col] != -1:
+        if grid[row][col] != cell_mine:
             count = count + 1
-            grid[row][col] = -1
+            grid[row][col] = cell_mine
 
+
+def get_num_of_neighboring_mines(row, col):
+    # Define the relative positions of the neighboring cells
+    neighbors = [
+        (-1, -1), (-1, 0), (-1, 1),
+        (0, -1),            (0, 1),
+        (1, -1),  (1, 0),  (1, 1)
+    ]
+    num_of_mines = 0
+    # Iterate over the neighboring cells
+    for dr, dc in neighbors:
+        new_row = row + dr
+        new_col = col + dc
+
+        # Check if the new position is within the grid boundaries
+        if 0 <= new_row < len(grid) and 0 <= new_col < len(grid[0]):
+            if grid[new_row][new_col] == -1:
+                num_of_mines += 1
+
+    return num_of_mines
+
+
+# Fill the cells that tell you how many mines neighbor it
+def create_number_cells():
+    for row in range(grid_rows):
+        for col in range(grid_cols):
+            if grid[row][col] == cell_empty:
+                # Count neighboring mines and write the number
+                grid[row][col] = get_num_of_neighboring_mines(row, col)
+
+
+def initialize_grid():
+    create_mines()
+    create_number_cells()
 
 # Game loop -------------------------------------------------------------
+initialize_grid()
 while True:
     move_counter += 1
     handle_input()

@@ -1,12 +1,21 @@
-import {makeAutoObservable} from 'mobx';
+import {action, makeAutoObservable, observable} from 'mobx';
+
+const random = (min: number, max: number): number =>
+	Math.floor(Math.random() * (max - min)) + min;
 
 type MovementDirection = 'left' | 'down' | 'up' | 'right';
 type CurrentPosition = [x: number, y: number];
 
+interface Cell {
+	isEmpty: boolean;
+	hasMine: boolean;
+	minesAround: number;
+}
+
 export default class GameLogic {
 	width: number;
 	height: number;
-	board: string[][];
+	board: Cell[][];
 	numberOfMines: number;
 	userPosition: CurrentPosition;
 
@@ -15,15 +24,29 @@ export default class GameLogic {
 		this.height = height;
 
 		// Creates a 2D array
-		this.board = Array.from({length: height}, () =>
-			Array.from({length: width}, () => ' '),
-		);
+		this.board = Array(width)
+			.fill([])
+			.map(() =>
+				Array(height).fill({
+					isEmpty: true,
+					hasMine: false,
+					minesAround: 0,
+				}),
+			);
 
 		this.numberOfMines = numberOfMines;
 		this.userPosition = [0, 0];
 
 		// Tracks state changes made to the object
-		makeAutoObservable(this);
+		makeAutoObservable(this, {
+			width: observable,
+			height: observable,
+			board: observable,
+			numberOfMines: observable,
+			userPosition: observable,
+			move: action,
+			createMines: action,
+		});
 	}
 
 	move(direction: MovementDirection) {
@@ -47,5 +70,20 @@ export default class GameLogic {
 
 		this.userPosition[0] = Math.max(0, Math.min(tempX, this.width - 1));
 		this.userPosition[1] = Math.max(0, Math.min(tempY, this.height - 1));
+	}
+
+	createMines() {
+		let count = 0;
+
+		while (count < this.numberOfMines) {
+			const randomColumn = random(0, this.width);
+			const randomRow = random(0, this.height);
+
+			if (this.board[randomRow][randomColumn]?.isEmpty) {
+				count += 1;
+				this.board[randomRow][randomColumn].hasMine = true;
+				this.board[randomRow][randomColumn].isEmpty = false;
+			}
+		}
 	}
 }

@@ -22,6 +22,10 @@ export const GameBoard = observer(() => {
 		if (key.rightArrow) {
 			minesweeper.move('right');
 		}
+
+		if (key.return) {
+			minesweeper.createMines();
+		}
 	});
 
 	return (
@@ -32,20 +36,20 @@ export const GameBoard = observer(() => {
 			alignItems="center"
 			justifyContent="center"
 		>
-			<Text>{`$Position =[${minesweeper.userPosition[0].toString()}, ${minesweeper.userPosition[1].toString()}]`}</Text>
+			<Text>{`Position = [${minesweeper.userPosition[0].toString()}, ${minesweeper.userPosition[1].toString()}]`}</Text>
 			<Box flexDirection="column">
 				{minesweeper.board.map((row, j) => {
 					return (
 						<Box key={`box-${j}`}>
-							{row.map((column, i) => {
+							{row.map((cell, i) => {
 								return minesweeper.userPosition[0] === i &&
 									minesweeper.userPosition[1] === j ? (
 									<Text backgroundColor="gray" key={`cell-${j}-${i}`} bold>
-										{column}
+										{cell.hasMine ? 'B' : ' '}
 									</Text>
 								) : (
 									<Text backgroundColor="white" key={`cell-${j}-${i}`} bold>
-										{column}
+										{cell.hasMine ? 'B' : ' '}
 									</Text>
 								);
 							})}

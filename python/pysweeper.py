@@ -15,8 +15,7 @@ grid_cols = 10
 
 # Cell content meanings:
 cell_empty = 0
-cell_mine = 9	# It rhymes
-
+cell_mine = 9  # It rhymes
 
 
 # The data structure for the playfield/grid gamestate.
@@ -24,69 +23,77 @@ cell_mine = 9	# It rhymes
 grid = [[0 for _ in range(grid_rows)] for _ in range(grid_cols)]
 
 # Show grid contents
+
+
 def print_grid(grid):
     for row in grid:
         print(row)
 
+
 def dig(x, y):
-	# Unimplemented
-	print("Dug...")
+    # Unimplemented
+    print("Dug...")
 
 # Move around cursor with WASD, pick a cell to dig with space.
+
+
 def handle_input():
-	global cursor_x, cursor_y # Global variables this function modifies
+    global cursor_x, cursor_y  # Global variables this function modifies
 
-	# Get input
-	inp = input()
-	inp = inp.upper()
-        
-	# Move cursor
-	if inp == "W":
-		cursor_y -= 1
-	elif inp == "S":
-		cursor_y += 1
-	elif inp == "A":
-		cursor_x -= 1
-	elif inp == "D":
-		cursor_x += 1
+    # Get input
+    inp = input()
+    inp = inp.upper()
 
-	# Don't let the cursor go out of bounds
-	cursor_x = max(0, min(cursor_x, grid_cols - 1))
-	cursor_y = max(0, min(cursor_y, grid_rows - 1))
+    # Move cursor
+    if inp == "W":
+        cursor_y -= 1
+    elif inp == "S":
+        cursor_y += 1
+    elif inp == "A":
+        cursor_x -= 1
+    elif inp == "D":
+        cursor_x += 1
+    elif inp == '':
+        create_mines()
 
-	# Dig
-	if inp == " ":
-		dig(cursor_x, cursor_y)
-	
+    # Don't let the cursor go out of bounds
+    cursor_x = max(0, min(cursor_x, grid_cols - 1))
+    cursor_y = max(0, min(cursor_y, grid_rows - 1))
+
+    # Dig
+    if inp == " ":
+        dig(cursor_x, cursor_y)
+
 
 def display_game_state():
-	print("Move #" + str(move_counter))
-	print_grid(grid)
-	print("Cursor is at: " + str(cursor_x) + ", " + str(cursor_y))
-	print("--------------------")
-	
+    print("Move #" + str(move_counter))
+    print_grid(grid)
+    print("Cursor is at: " + str(cursor_x) + ", " + str(cursor_y))
+    print("--------------------")
+
 # Function for setting up Mines
+
+
 def create_mines():
- 
-    num_pair = [][]
     mines_no = 15
- 
+
     # Track of number of mines already set up
     count = 0
     while count < mines_no:
- 
-        # Random number from all possible grid positions 
+
+        # Random number from all possible grid positions
         rand = random.randint(0, grid_rows*grid_cols-1)
-	rand2 = random.randint(0, grid_rows*grid_cols-1)
- 
-        #Create row and column pair
+        rand2 = random.randint(0, grid_rows*grid_cols-1)
+
+        # Create row and column pair
         row = rand // rand2
         col = rand % rand2
- 
+
         # Place Mine if empty
-        if num_pair[row][col] != -1:
+        if grid[row][col] != -1:
             count = count + 1
-            num_pair[row][col] = -1
+            grid[row][col] = -1
+
 
 # Game loop -------------------------------------------------------------
 while True:

@@ -17,6 +17,8 @@ grid_cols = 10
 cell_empty = 0
 cell_mine = 9	# It rhymes
 
+
+
 # The data structure for the playfield/grid gamestate.
 # It's full of integers. Each number tells the cell's contents.
 grid = [[0 for _ in range(grid_rows)] for _ in range(grid_cols)]
@@ -62,7 +64,29 @@ def display_game_state():
 	print_grid(grid)
 	print("Cursor is at: " + str(cursor_x) + ", " + str(cursor_y))
 	print("--------------------")
-
+	
+# Function for setting up Mines
+def create_mines():
+ 
+    num_pair = [][]
+    mines_no = 15
+ 
+    # Track of number of mines already set up
+    count = 0
+    while count < mines_no:
+ 
+        # Random number from all possible grid positions 
+        rand = random.randint(0, grid_rows*grid_cols-1)
+	rand2 = random.randint(0, grid_rows*grid_cols-1)
+ 
+        #Create row and column pair
+        row = rand // rand2
+        col = rand % rand2
+ 
+        # Place Mine if empty
+        if num_pair[row][col] != -1:
+            count = count + 1
+            num_pair[row][col] = -1
 
 # Game loop -------------------------------------------------------------
 while True:

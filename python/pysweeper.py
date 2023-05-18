@@ -26,7 +26,14 @@ grid = [[0 for _ in range(grid_rows)] for _ in range(grid_cols)]
 
 def print_grid(grid):
     for row in grid:
-        print(row)
+        for element in row:
+            if element == cell_empty:
+                print("-", end="")
+            elif element == cell_mine:
+                print("X", end="")
+            else:
+                print(element, end="")
+        print()
 
 
 def dig(x, y):

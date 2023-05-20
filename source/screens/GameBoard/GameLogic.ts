@@ -7,10 +7,15 @@ type GameState = 'waitingForFirstMove' | 'ongoing' | 'win' | 'loss';
 type MovementDirection = 'left' | 'down' | 'up' | 'right';
 export type CurrentPosition = [x: number, y: number];
 
+enum CellState {
+	Mine = -1,
+	Empty = 0,
+}
+
 export interface Cell {
 	isRevealed: boolean;
 	hasMine: boolean;
-	value: number; // -1 = Mine, 0 = Empty, 1-4 = Mines around cell
+	value: CellState | number;
 }
 
 export default class GameLogic {
@@ -80,8 +85,7 @@ export default class GameLogic {
 		const [x, y] = this.userPosition;
 		this.board[x][y].isRevealed = true;
 
-		// Loop to immediately mark the cell around the user selected cell
-		// with empty cells
+		// Loop to immediately reveal the cells around the user selected cell
 		let i, j;
 		for (i = x - 1, j = x + 2; i < j; i++) {
 			if (i >= 0 && i < this.width) {
@@ -101,7 +105,8 @@ export default class GameLogic {
 		}
 
 		let mines = 0;
-
+		// Randomly places mine on the board.
+		// TODO: Make mines clump together
 		while (mines < this.numberOfMines) {
 			const randomColumn = random(0, this.width);
 			const randomRow = random(0, this.height);
@@ -115,11 +120,57 @@ export default class GameLogic {
 			}
 		}
 
+		this.createNumberCells();
 		this.gameStatus = 'ongoing';
 	}
 
-	selectCell() {
-		const [x, y] = this.userPosition;
+	createNumberCells() {
+		for (let row = 0; row < this.width; row++) {
+			for (let column = 0; column < this.height; column++) {
+				if (this.board[row][column].value === CellState.Empty) {
+					this.board[row][column].value = this.getNumberofNeighboringMines(
+						row,
+						column,
+					);
+				}
+			}
+		}
+	}
+
+	getNumberofNeighboringMines(x: number, y: number): number {
+		const neighbors = [
+			[-1, -1],
+			[-1, 0],
+			[-1, 1],
+			[0, -1],
+			[0, 1],
+			[1, -1],
+			[1, 0],
+			[1, 1],
+		];
+
+		let minesCount = 0;
+
+		for (const [dr, dc] of neighbors) {
+			const newRow = x + dr;
+			const newCol = y + dc;
+
+			if (
+				0 <= newRow &&
+				newRow < this.board.length &&
+				0 <= newCol &&
+				newCol < this.board[0].length
+			) {
+				if (this.board[newRow][newCol].value === CellState.Mine) {
+					minesCount += 1;
+				}
+			}
+		}
+
+		return minesCount;
+	}
+
+	selectCell(x: number, y: number) {
 		const selectedCell = this.board[x][y];
 
 		if (selectedCell.isRevealed) {
@@ -128,7 +179,36 @@ export default class GameLogic {
 
 		selectedCell.isRevealed = true;
 
-		if (selectedCell.hasMine) {
+		if (selectedCell.value === CellState.Empty) {
+			const neighbors = [
+				[-1, -1],
+				[-1, 0],
+				[-1, 1],
+				[0, -1],
+				[0, 1],
+				[1, -1],
+				[1, 0],
+				[1, 1],
+			];
+
+			for (const [dr, dc] of neighbors) {
+				const newRow = x + dr;
+				const newCol = y + dc;
+
+				if (
+					0 <= newRow &&
+					newRow < this.board.length &&
+					0 <= newCol &&
+					newCol < this.board[0].length
+				) {
+					if (this.board[newRow][newCol].value === CellState.Empty) {
+						this.selectCell(newRow, newCol);
+					} else {
+						this.board[newRow][newCol].isRevealed = true;
+					}
+				}
+			}
+		} else if (selectedCell.hasMine) {
 			this.gameStatus = 'loss';
 		}
 	}

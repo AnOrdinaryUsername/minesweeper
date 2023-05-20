@@ -27,7 +27,8 @@ export const GameBoard = observer(() => {
 			if (minesweeper.gameStatus === 'waitingForFirstMove') {
 				minesweeper.generateMinesAfterFirstMove();
 			} else {
-				minesweeper.selectCell();
+				const [x, y] = minesweeper.userPosition;
+				minesweeper.selectCell(x, y);
 			}
 		}
 
@@ -97,7 +98,9 @@ function BoardRow({track, row, userPosition}: BoardRowProps) {
 							? 'M'
 							: cell.value <= 0
 							? ' '
-							: cell.value}
+							: cell.isRevealed
+							? cell.value
+							: ' '}
 					</Text>
 				);
 			})}

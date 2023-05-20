@@ -74,17 +74,20 @@ export const GameBoard = observer(() => {
 					borderColor="#808080"
 				>
 					<Box marginTop={-1} marginBottom={1}>
-						<Text color="black" backgroundColor="yellowBright">
-							INFO
+						<Text color="yellowBright">
+							{minesweeper.gameStatus === 'waitingForFirstMove' ||
+							minesweeper.gameStatus === 'ongoing'
+								? '😊 INFO 😊'
+								: '😭 INFO 😭'}
 						</Text>
 					</Box>
 					<Box height={5}>
 						<Box flexDirection="column">
-							<Text>Position:</Text>
+							<Text color="cyan">Position:</Text>
 							<Spacer />
-							<Text>Mines:</Text>
+							<Text color="cyan">Mines:</Text>
 							<Spacer />
-							<Text>Cells left:</Text>
+							<Text color="cyan">Cells left:</Text>
 						</Box>
 						<Box flexDirection="column" alignItems="flex-end">
 							<Text>{`[${x}, ${y}]`}</Text>

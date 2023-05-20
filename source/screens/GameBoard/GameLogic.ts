@@ -1,9 +1,10 @@
 import {action, makeObservable, observable} from 'mobx';
+import {nanoid} from 'nanoid';
 
 const random = (min: number, max: number): number =>
 	Math.floor(Math.random() * (max - min)) + min;
 
-type GameState = 'waitingForFirstMove' | 'ongoing' | 'win' | 'loss';
+export type GameState = 'waitingForFirstMove' | 'ongoing' | 'win' | 'loss';
 type MovementDirection = 'left' | 'down' | 'up' | 'right';
 export type Coordinates = [x: number, y: number];
 
@@ -15,7 +16,9 @@ enum CellState {
 export interface Cell {
 	isRevealed: boolean;
 	hasMine: boolean;
+	hasFlag: boolean;
 	value: CellState | number;
+	id: string;
 }
 
 export default class GameLogic {
@@ -25,6 +28,7 @@ export default class GameLogic {
 	numberOfMines: number;
 	userPosition: Coordinates;
 	gameStatus: GameState;
+	unrevealedCellsLeft: number;
 
 	// Cells in an immediate area
 	//  XXX
@@ -45,20 +49,23 @@ export default class GameLogic {
 		this.width = width;
 		this.height = height;
 		this.gameStatus = 'waitingForFirstMove';
+		this.numberOfMines = numberOfMines;
+		this.unrevealedCellsLeft = height * width - numberOfMines;
+		this.userPosition = [0, 0];
 
 		// Creates a 2D array
 		this.board = Array(width)
 			.fill([])
 			.map(() =>
-				Array(height).fill({
-					isRevealed: false,
-					hasMine: false,
-					value: 0,
-				}),
+				Array(height)
+					.fill({
+						isRevealed: false,
+						hasMine: false,
+						hasFlag: false,
+						value: CellState.Empty,
+					})
+					.map(e => ({...e, id: nanoid()})),
 			);
-
-		this.numberOfMines = numberOfMines;
-		this.userPosition = [0, 0];
 
 		// Tracks state changes made to the object
 		makeObservable(this, {
@@ -67,9 +74,14 @@ export default class GameLogic {
 			board: observable,
 			numberOfMines: observable,
 			userPosition: observable,
+			unrevealedCellsLeft: observable,
+			gameStatus: observable,
 			move: action,
 			generateMinesAfterFirstMove: action,
+			createNumberCells: action,
 			selectCell: action,
+			toggleFlag: action,
+			checkWinner: action,
 		});
 	}
 
@@ -111,24 +123,23 @@ export default class GameLogic {
 
 			// Cells immediately around the user coords are guranteed to not
 			//  have a mine
-			const neighborCoords = this.neighbors.map(neighbor => {
+			const protectedCoords = this.neighbors.map(neighbor => {
 				const neighborX = x + neighbor[0];
 				const neighborY = y + neighbor[1];
 				return [neighborX, neighborY];
 			});
 			// Add currect user coords to protect it
-			neighborCoords.push([x, y]);
+			protectedCoords.push([x, y]);
 			// If the random selected cell coords are in the protected area,
 			// then we won't add a mine to that cell
-			const isInProtectedArea = neighborCoords.some(
-				neighbor =>
-					neighbor[0] === cellCoords[0] && neighbor[1] === cellCoords[1],
+			const isInProtectedArea = protectedCoords.some(
+				coords => coords[0] === cellCoords[0] && coords[1] === cellCoords[1],
 			);
 
-			if (!cell.hasMine && !cell.isRevealed && !isInProtectedArea) {
+			if (!cell.hasMine && !isInProtectedArea) {
 				mines += 1;
 				cell.hasMine = true;
-				cell.value = -1;
+				cell.value = CellState.Mine;
 			}
 		}
 
@@ -179,6 +190,7 @@ export default class GameLogic {
 		}
 
 		selectedCell.isRevealed = true;
+		this.unrevealedCellsLeft -= 1;
 
 		if (selectedCell.value === CellState.Empty) {
 			for (const [dr, dc] of this.neighbors) {
@@ -200,6 +212,35 @@ export default class GameLogic {
 			}
 		} else if (selectedCell.hasMine) {
 			this.gameStatus = 'loss';
+			this.revealBoard();
+		}
+	}
+
+	toggleFlag(x: number, y: number) {
+		const cell = this.board[x][y];
+
+		if (this.gameStatus === 'waitingForFirstMove' || cell.isRevealed) {
+			return;
+		}
+
+		if (cell.hasFlag) {
+			this.board[x][y].hasFlag = false;
+		} else {
+			this.board[x][y].hasFlag = true;
+		}
+	}
+
+	checkWinner() {
+		if (this.unrevealedCellsLeft === 0) {
+			this.gameStatus = 'win';
+		}
+	}
+
+	revealBoard() {
+		for (let row = 0; row < this.width; row++) {
+			for (let column = 0; column < this.height; column++) {
+				this.board[row][column].isRevealed = true;
+			}
 		}
 	}
 }

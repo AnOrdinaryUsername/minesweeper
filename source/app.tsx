@@ -4,6 +4,7 @@ import {useWindowSize} from './hooks/useWindowSize.js';
 import {Credits} from './screens/Credits.js';
 import {GameBoard} from './screens/GameBoard/GameBoard.js';
 import {MainMenu} from './screens/MainMenu.js';
+import {Scores} from './screens/Scores.js';
 import {MenuItem, ScreenState} from './types/index.js';
 
 type Props = {
@@ -48,6 +49,7 @@ export default function App({initialScreen = 'menu'}: Props) {
 			>
 				{currentScreen === 'menu' && <MainMenu onSelect={handleSelect} />}
 				{currentScreen === 'start' && <GameBoard />}
+				{currentScreen === 'scores' && <Scores />}
 				{currentScreen === 'credits' && <Credits handleInput={handleSelect} />}
 				{currentScreen === 'quit' && (
 					<Text color="cyan">Thank you for playing our game!</Text>

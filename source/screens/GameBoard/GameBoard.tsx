@@ -1,12 +1,18 @@
-import {Box, Text, useInput} from 'ink';
+import {Box, Spacer, Text, useInput} from 'ink';
+import BigText from 'ink-big-text';
 import {observer} from 'mobx-react';
 import React, {useState} from 'react';
-import GameLogic, {Cell, Coordinates} from './GameLogic.js';
+import GameLogic, {Cell, GameState} from './GameLogic.js';
 
 export const GameBoard = observer(() => {
 	const [minesweeper] = useState(() => new GameLogic(9, 9, 10));
+	const [x, y] = minesweeper.userPosition;
 
-	useInput((a, key) => {
+	const showTitleText = (gameStatus: GameState): string => {
+		return gameStatus === 'loss' ? 'You Lose!' : 'You Won!';
+	};
+
+	useInput((input, key) => {
 		if (key.upArrow) {
 			minesweeper.move('up');
 		}
@@ -30,11 +36,12 @@ export const GameBoard = observer(() => {
 
 			const [x, y] = minesweeper.userPosition;
 			minesweeper.selectCell(x, y);
+			minesweeper.checkWinner();
 		}
 
-		if (a === 'b') {
+		if (input === 'f') {
 			const [x, y] = minesweeper.userPosition;
-			console.log(JSON.stringify(minesweeper.board[x][y]));
+			minesweeper.toggleFlag(x, y);
 		}
 	});
 
@@ -46,64 +53,122 @@ export const GameBoard = observer(() => {
 			alignItems="center"
 			justifyContent="center"
 		>
-			<Text>{`Position = [${minesweeper.userPosition[0].toString()}, ${minesweeper.userPosition[1].toString()}]`}</Text>
-			<Text>{`Revealed? = ${
-				minesweeper.board[minesweeper.userPosition[0]][
-					minesweeper.userPosition[1]
-				].isRevealed
-			}`}</Text>
-			<Text>{`Mine? = ${
-				minesweeper.board[minesweeper.userPosition[0]][
-					minesweeper.userPosition[1]
-				].hasMine
-			}`}</Text>
-			<Text>{`Value? = ${minesweeper.board[minesweeper.userPosition[0]][
-				minesweeper.userPosition[1]
-			].value.toString()}`}</Text>
-			<Box flexDirection="row">
-				{minesweeper.board.map((row, i) => (
-					<BoardRow
-						key={i}
-						track={i}
-						row={row}
-						userPosition={minesweeper.userPosition}
-					/>
+			{minesweeper.gameStatus === 'win' ||
+				(minesweeper.gameStatus === 'loss' && (
+					<BigText text={showTitleText(minesweeper.gameStatus)} />
 				))}
+			<Box
+				flexDirection="row"
+				flexWrap="wrap"
+				alignItems="flex-start"
+				justifyContent="center"
+			>
+				<Box
+					width={30}
+					height={10}
+					marginRight={5}
+					flexDirection="column"
+					alignItems="center"
+					justifyContent="center"
+					borderStyle="double"
+					borderColor="#808080"
+				>
+					<Box marginTop={-1} marginBottom={1}>
+						<Text color="black" backgroundColor="yellowBright">
+							INFO
+						</Text>
+					</Box>
+					<Box height={5}>
+						<Box flexDirection="column">
+							<Text>Position:</Text>
+							<Spacer />
+							<Text>Mines:</Text>
+							<Spacer />
+							<Text>Cells left:</Text>
+						</Box>
+						<Box flexDirection="column" alignItems="flex-end">
+							<Text>{`[${x}, ${y}]`}</Text>
+							<Spacer />
+							<Text>{minesweeper.numberOfMines}</Text>
+							<Spacer />
+							<Text>{minesweeper.unrevealedCellsLeft}</Text>
+						</Box>
+					</Box>
+				</Box>
+				<Board game={minesweeper} />
 			</Box>
 		</Box>
 	);
 });
 
-interface BoardRowProps {
-	track: number;
-	row: Cell[];
-	userPosition: Coordinates;
+interface BoardProps {
+	game: GameLogic;
 }
 
-function BoardRow({track, row, userPosition}: BoardRowProps) {
+const Board = ({game}: BoardProps) => {
+	return (
+		<Box flexDirection="row">
+			{game.board.map((row: Cell[], i: number) => (
+				<BoardRow key={i} track={i} row={row} game={game} />
+			))}
+		</Box>
+	);
+};
+
+interface BoardRowProps extends BoardProps {
+	track: number;
+	row: Cell[];
+}
+
+const BoardRow = ({track, row, game}: BoardRowProps) => {
+	const determineText = (cell: Cell): string => {
+		return cell.hasMine && cell.isRevealed
+			? '💣'
+			: cell.hasFlag
+			? '🚩'
+			: cell.value <= 0
+			? '\u2009 '
+			: cell.isRevealed
+			? `\u2009${cell.value}`
+			: '\u2009 ';
+	};
+
+	const determineBackgroundColor = (cell: Cell): string => {
+		return cell.isRevealed ? '#c0c0c0' : 'white';
+	};
+
+	const determineColor = (cell: Cell): string => {
+		return cell.value === 1
+			? '#061ef1'
+			: cell.value === 2
+			? '#3e792a'
+			: cell.value === 3
+			? '#df3524'
+			: '#000080';
+	};
+
 	return (
 		<Box flexDirection="column">
 			{row.map((cell, i) => {
 				return (
 					<Text
-						key={i}
+						key={cell.id}
 						backgroundColor={
-							userPosition[0] === track && userPosition[1] === i
+							game.userPosition[0] === track && game.userPosition[1] === i
 								? 'gray'
-								: 'white'
+								: determineBackgroundColor(cell)
+						}
+						color={
+							game.userPosition[0] === track && game.userPosition[1] === i
+								? 'white'
+								: determineColor(cell)
 						}
 						bold
 					>
-						{cell.hasMine && cell.isRevealed
-							? 'M'
-							: cell.value <= 0
-							? ' '
-							: cell.isRevealed
-							? cell.value
-							: ' '}
+						{determineText(cell)}
 					</Text>
 				);
 			})}
 		</Box>
 	);
-}
+};

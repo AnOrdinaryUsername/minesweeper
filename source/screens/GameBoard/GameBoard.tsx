@@ -1,7 +1,7 @@
 import {Box, Text, useInput} from 'ink';
 import {observer} from 'mobx-react';
 import React, {useState} from 'react';
-import GameLogic, {Cell, CurrentPosition} from './GameLogic.js';
+import GameLogic, {Cell, Coordinates} from './GameLogic.js';
 
 export const GameBoard = observer(() => {
 	const [minesweeper] = useState(() => new GameLogic(9, 9, 10));
@@ -26,10 +26,10 @@ export const GameBoard = observer(() => {
 		if (key.return) {
 			if (minesweeper.gameStatus === 'waitingForFirstMove') {
 				minesweeper.generateMinesAfterFirstMove();
-			} else {
-				const [x, y] = minesweeper.userPosition;
-				minesweeper.selectCell(x, y);
 			}
+
+			const [x, y] = minesweeper.userPosition;
+			minesweeper.selectCell(x, y);
 		}
 
 		if (a === 'b') {
@@ -77,7 +77,7 @@ export const GameBoard = observer(() => {
 interface BoardRowProps {
 	track: number;
 	row: Cell[];
-	userPosition: CurrentPosition;
+	userPosition: Coordinates;
 }
 
 function BoardRow({track, row, userPosition}: BoardRowProps) {

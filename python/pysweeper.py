@@ -24,16 +24,17 @@ cell_mine = -1
 grid = [[0 for _ in range(grid_rows)] for _ in range(grid_cols)]
 revealed = [[False for _ in range(grid_rows)] for _ in range(grid_cols)] # Boolean: True if revealed, False if not
 
-# Show grid contents
 
+# Show grid contents
 def print_revealed_grid(grid):
     for row in grid:
         for element in row:
-            if element == True: # If revealed
+            if element:  # If revealed
                 print(" ", end="")
             else: 
                 print("?", end="")
         print()
+
 
 def print_grid(grid):
     for row in grid:
@@ -167,9 +168,11 @@ def create_number_cells():
                 # Count neighboring mines and write the number
                 grid[row][col] = get_num_of_neighboring_mines(row, col)
 
+
 def initialize_grid():
     create_mines()
     create_number_cells()
+
 
 # Game loop -------------------------------------------------------------
 print("Type W, A, S, D, or Space and hit Enter.")

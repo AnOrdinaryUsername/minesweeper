@@ -5,7 +5,7 @@ const random = (min: number, max: number): number =>
 
 type GameState = 'waitingForFirstMove' | 'ongoing' | 'win' | 'loss';
 type MovementDirection = 'left' | 'down' | 'up' | 'right';
-export type CurrentPosition = [x: number, y: number];
+export type Coordinates = [x: number, y: number];
 
 enum CellState {
 	Mine = -1,
@@ -23,8 +23,23 @@ export default class GameLogic {
 	height: number;
 	board: Cell[][];
 	numberOfMines: number;
-	userPosition: CurrentPosition;
+	userPosition: Coordinates;
 	gameStatus: GameState;
+
+	// Cells in an immediate area
+	//  XXX
+	//  XCX
+	//  XXX
+	private neighbors = [
+		[-1, -1],
+		[-1, 0],
+		[-1, 1],
+		[0, -1],
+		[0, 1],
+		[1, -1],
+		[1, 0],
+		[1, 1],
+	];
 
 	constructor(width: number, height: number, numberOfMines: number) {
 		this.width = width;
@@ -83,26 +98,6 @@ export default class GameLogic {
 
 	generateMinesAfterFirstMove() {
 		const [x, y] = this.userPosition;
-		this.board[x][y].isRevealed = true;
-
-		// Loop to immediately reveal the cells around the user selected cell
-		let i, j;
-		for (i = x - 1, j = x + 2; i < j; i++) {
-			if (i >= 0 && i < this.width) {
-				// Reveal cells to the left and right of user selected cell
-				this.board[i][y].isRevealed = true;
-
-				// Checks if bottom is in bounds
-				if (y - 1 >= 0) {
-					this.board[i][y - 1].isRevealed = true;
-				}
-
-				// Checks if top is in bounds
-				if (y + 1 < this.height) {
-					this.board[i][y + 1].isRevealed = true;
-				}
-			}
-		}
 
 		let mines = 0;
 		// Randomly places mine on the board.
@@ -111,9 +106,26 @@ export default class GameLogic {
 			const randomColumn = random(0, this.width);
 			const randomRow = random(0, this.height);
 
+			const cellCoords: Coordinates = [randomRow, randomColumn];
 			const cell = this.board[randomRow][randomColumn];
 
-			if (!cell.hasMine && !cell.isRevealed) {
+			// Cells immediately around the user coords are guranteed to not
+			//  have a mine
+			const neighborCoords = this.neighbors.map(neighbor => {
+				const neighborX = x + neighbor[0];
+				const neighborY = y + neighbor[1];
+				return [neighborX, neighborY];
+			});
+			// Add currect user coords to protect it
+			neighborCoords.push([x, y]);
+			// If the random selected cell coords are in the protected area,
+			// then we won't add a mine to that cell
+			const isInProtectedArea = neighborCoords.some(
+				neighbor =>
+					neighbor[0] === cellCoords[0] && neighbor[1] === cellCoords[1],
+			);
+
+			if (!cell.hasMine && !cell.isRevealed && !isInProtectedArea) {
 				mines += 1;
 				cell.hasMine = true;
 				cell.value = -1;
@@ -138,20 +150,9 @@ export default class GameLogic {
 	}
 
 	getNumberofNeighboringMines(x: number, y: number): number {
-		const neighbors = [
-			[-1, -1],
-			[-1, 0],
-			[-1, 1],
-			[0, -1],
-			[0, 1],
-			[1, -1],
-			[1, 0],
-			[1, 1],
-		];
-
 		let minesCount = 0;
 
-		for (const [dr, dc] of neighbors) {
+		for (const [dr, dc] of this.neighbors) {
 			const newRow = x + dr;
 			const newCol = y + dc;
 
@@ -180,18 +181,7 @@ export default class GameLogic {
 		selectedCell.isRevealed = true;
 
 		if (selectedCell.value === CellState.Empty) {
-			const neighbors = [
-				[-1, -1],
-				[-1, 0],
-				[-1, 1],
-				[0, -1],
-				[0, 1],
-				[1, -1],
-				[1, 0],
-				[1, 1],
-			];
-
-			for (const [dr, dc] of neighbors) {
+			for (const [dr, dc] of this.neighbors) {
 				const newRow = x + dr;
 				const newCol = y + dc;
 

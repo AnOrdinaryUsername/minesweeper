@@ -1,6 +1,6 @@
 {
 	"name": "minesweeper",
-	"version": "0.0.0",
+	"version": "1.0.0",
 	"license": "MIT",
 	"bin": "dist/cli.js",
 	"type": "module",
@@ -8,6 +8,7 @@
 		"node": ">=16"
 	},
 	"scripts": {
+		"start": "npm run build && minesweeper",
 		"build": "tsc",
 		"dev": "tsc --watch",
 		"test": "prettier --check . && xo && ava"

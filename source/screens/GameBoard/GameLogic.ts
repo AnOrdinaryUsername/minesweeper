@@ -1,4 +1,4 @@
-import {action, makeObservable, observable} from 'mobx';
+import {makeAutoObservable} from 'mobx';
 import {nanoid} from 'nanoid';
 
 const random = (min: number, max: number): number =>
@@ -19,6 +19,12 @@ export interface Cell {
 	hasFlag: boolean;
 	value: CellState | number;
 	id: string;
+}
+
+export interface GameSettings {
+	width: number;
+	height: number;
+	numberOfMines: number;
 }
 
 export default class GameLogic {
@@ -45,7 +51,7 @@ export default class GameLogic {
 		[1, 1],
 	];
 
-	constructor(width: number, height: number, numberOfMines: number) {
+	constructor({width, height, numberOfMines}: GameSettings) {
 		this.width = width;
 		this.height = height;
 		this.gameStatus = 'waitingForFirstMove';
@@ -64,25 +70,14 @@ export default class GameLogic {
 						hasFlag: false,
 						value: CellState.Empty,
 					})
-					.map(e => ({...e, id: nanoid()})),
+					.map(e => ({
+						...e,
+						id: nanoid(),
+					})),
 			);
 
 		// Tracks state changes made to the object
-		makeObservable(this, {
-			width: observable,
-			height: observable,
-			board: observable,
-			numberOfMines: observable,
-			userPosition: observable,
-			unrevealedCellsLeft: observable,
-			gameStatus: observable,
-			move: action,
-			generateMinesAfterFirstMove: action,
-			createNumberCells: action,
-			selectCell: action,
-			toggleFlag: action,
-			checkWinner: action,
-		});
+		makeAutoObservable(this);
 	}
 
 	move(direction: MovementDirection) {
@@ -185,7 +180,7 @@ export default class GameLogic {
 	selectCell(x: number, y: number) {
 		const selectedCell = this.board[x][y];
 
-		if (selectedCell.isRevealed) {
+		if (selectedCell.isRevealed || selectedCell.hasFlag) {
 			return;
 		}
 
@@ -203,10 +198,15 @@ export default class GameLogic {
 					0 <= newCol &&
 					newCol < this.board[0].length
 				) {
-					if (this.board[newRow][newCol].value === CellState.Empty) {
+					const neighbor = this.board[newRow][newCol];
+
+					if (neighbor.value === CellState.Empty) {
 						this.selectCell(newRow, newCol);
 					} else {
-						this.board[newRow][newCol].isRevealed = true;
+						if (!neighbor.isRevealed) {
+							neighbor.isRevealed = true;
+							this.unrevealedCellsLeft -= 1;
+						}
 					}
 				}
 			}
@@ -223,11 +223,7 @@ export default class GameLogic {
 			return;
 		}
 
-		if (cell.hasFlag) {
-			this.board[x][y].hasFlag = false;
-		} else {
-			this.board[x][y].hasFlag = true;
-		}
+		this.board[x][y].hasFlag = !cell.hasFlag;
 	}
 
 	checkWinner() {

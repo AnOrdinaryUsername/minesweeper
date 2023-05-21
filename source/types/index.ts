@@ -6,7 +6,13 @@ export type ScreenState =
 	| 'quit'
 	| undefined;
 
-export interface MenuItem {
+export interface MenuItem<T> {
 	label: string;
-	value: ScreenState;
+	value: T;
 }
+
+export interface GoBack {
+	handleInput: (screen: MenuItem<ScreenState>) => void;
+}
+
+export type Difficulty = 'beginner' | 'intermediate' | 'expert';

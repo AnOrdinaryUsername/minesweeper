@@ -1,7 +1,7 @@
 import {Box, Spacer, Text, useInput} from 'ink';
-import BigText from 'ink-big-text';
 import React from 'react';
-import {MenuItem} from '../types/index.js';
+import {GoBack} from '../types/index.js';
+import {Title} from './components/Title.js';
 
 interface TeamInfo {
 	name: string;
@@ -42,11 +42,7 @@ function Member({name, githubLink, color}: TeamInfo) {
 	);
 }
 
-interface ScreenProps {
-	handleInput: (screen: MenuItem) => void;
-}
-
-export function Credits({handleInput}: ScreenProps) {
+export function Credits({handleInput}: GoBack) {
 	useInput(input => {
 		// The back button to go back to main menu
 		if (input === 'b') {
@@ -61,12 +57,20 @@ export function Credits({handleInput}: ScreenProps) {
 			flexDirection="column"
 			justifyContent="center"
 			alignItems="center"
+			gap={2}
 		>
-			<BigText text="Credits" />
-			{members.map((person: TeamInfo, index: number) => (
-				<Member {...person} key={index} />
-			))}
-			<Box marginTop={2}>
+			<Box
+				flexDirection="column"
+				width="100%"
+				alignItems="center"
+				justifyContent="center"
+			>
+				<Title text="Credits" />
+				{members.map((person: TeamInfo, index: number) => (
+					<Member {...person} key={index} />
+				))}
+			</Box>
+			<Box>
 				<Text backgroundColor="gray">[ Press B to go back ]</Text>
 			</Box>
 		</Box>

@@ -1,10 +1,10 @@
 import {Box, Text} from 'ink';
-import BigText from 'ink-big-text';
 import SelectInput from 'ink-select-input';
 import React from 'react';
-import {MenuItem} from '../types/index.js';
+import {MenuItem, ScreenState} from '../types/index.js';
+import {Title} from './components/Title.js';
 
-const menuItems: Array<MenuItem> = [
+const menuItems: Array<MenuItem<ScreenState>> = [
 	{
 		label: 'Start',
 		value: 'start',
@@ -24,7 +24,7 @@ const menuItems: Array<MenuItem> = [
 ];
 
 interface Props {
-	onSelect: (MenuItem: MenuItem) => void;
+	onSelect: (MenuItem: MenuItem<ScreenState>) => void;
 }
 
 export function MainMenu({onSelect}: Props) {
@@ -35,7 +35,7 @@ export function MainMenu({onSelect}: Props) {
 			justifyContent="center"
 			width="100%"
 		>
-			<BigText text="Minesweeper" font="slick" colors={['green']} />
+			<Title text="Minesweeper" font="slick" colors={['green']} />
 			<SelectInput items={menuItems} onSelect={onSelect} />
 			<Box marginTop={4}>
 				<Text color="gray">A project by the Boolean Bozos</Text>

@@ -18,6 +18,7 @@ const cli = meow(
 		--version		Prints version information
 		-S, --start  		Quickly starts the game without the menu
 		-C, --credits		Shows the list of contributors that made this game possible
+		-D, --debug		Turns on debug mode for ink
 
 	EXAMPLE:
 		minesweeper --start
@@ -33,6 +34,10 @@ const cli = meow(
 				type: 'boolean',
 				shortFlag: 'C',
 			},
+			debug: {
+				type: 'boolean',
+				shortFlag: 'D',
+			},
 		},
 	},
 );
@@ -45,7 +50,10 @@ if (cli.flags.start) {
 	screen = 'credits';
 }
 
+const options = {
+	debug: cli.flags.debug,
+};
 // Used to hide terminal prompt before rendering the App
 console.clear();
 
-render(<App initialScreen={screen} />);
+render(<App initialScreen={screen} />, options);

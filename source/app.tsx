@@ -2,9 +2,9 @@ import {Box, Text, useApp} from 'ink';
 import React, {useEffect, useState} from 'react';
 import {useWindowSize} from './hooks/useWindowSize.js';
 import {Credits} from './screens/Credits.js';
-import {GameBoard} from './screens/GameBoard/GameBoard.js';
 import {MainMenu} from './screens/MainMenu.js';
 import {Scores} from './screens/Scores.js';
+import {SelectDifficulty} from './screens/SelectDifficulty.js';
 import {MenuItem, ScreenState} from './types/index.js';
 
 type Props = {
@@ -22,7 +22,7 @@ export default function App({initialScreen = 'menu'}: Props) {
 		}
 	}, [currentScreen]);
 
-	function handleSelect({value}: MenuItem) {
+	function handleSelect({value}: MenuItem<ScreenState>) {
 		if (!value) {
 			throw new Error(`Selected menu item is ${value}.`);
 		}
@@ -48,8 +48,10 @@ export default function App({initialScreen = 'menu'}: Props) {
 				width="80%"
 			>
 				{currentScreen === 'menu' && <MainMenu onSelect={handleSelect} />}
-				{currentScreen === 'start' && <GameBoard />}
-				{currentScreen === 'scores' && <Scores />}
+				{currentScreen === 'start' && (
+					<SelectDifficulty handleInput={handleSelect} />
+				)}
+				{currentScreen === 'scores' && <Scores handleInput={handleSelect} />}
 				{currentScreen === 'credits' && <Credits handleInput={handleSelect} />}
 				{currentScreen === 'quit' && (
 					<Text color="cyan">Thank you for playing our game!</Text>

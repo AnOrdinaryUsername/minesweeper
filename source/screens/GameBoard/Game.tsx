@@ -161,7 +161,7 @@ export const Game = observer(({difficulty, handleInput}: Props) => {
 				<Box
 					flexDirection="column"
 					alignItems="center"
-					justifyContent="center"
+					justifyContent="flex-start"
 					height="100%"
 					gap={1}
 				>
